@@ -49,6 +49,19 @@ export type SchemaSpec<TDefault> = {
 };
 
 export interface CustomSchemaMetadata {}
+// If `CustomSchemaMeta` isn't extended with any keys, we'll fall back to a
+// loose Record definition allowing free form usage.
+//在 TypeScript 中，[keyof](file:///Users/user/Desktop/learn/sourceCode/yup/src/schema.ts#55%2C30-55%2C30) 操作符用于获取一个类型的所有键的联合类型。[never](file:///Users/user/Desktop/learn/sourceCode/yup/src/schema.ts#55%2C65-55%2C65) 是 TypeScript 中的一个特殊类型，表示永远不会发生的类型。
+
+// 在这个三元表达式中，`keyof CustomSchemaMetadata extends never` 是一个条件类型。
+// 它检查 `CustomSchemaMetadata` 是否没有任何键，也就是说，它是否是一个空对象类型。
+
+//如果 `CustomSchemaMetadata` 是一个空对象类型，那么 `keyof CustomSchemaMetadata` 就会是 `never`，因此 `keyof CustomSchemaMetadata extends never` 就会是 `true`。
+// 在这种情况下，`SchemaMetadata` 的类型就会是 `Record<PropertyKey, any>`，也就是说，它可以是任何键值对的对象。
+
+//如果 `CustomSchemaMetadata` 不是一个空对象类型，那么 `keyof CustomSchemaMetadata` 就不会是 `never`，
+// 因此 `keyof CustomSchemaMetadata extends never` 就会是 `false`。在这种情况下，
+// `SchemaMetadata` 的类型就会是 `CustomSchemaMetadata`，也就是说，它必须符合 `CustomSchemaMetadata` 的类型定义。
 
 // If `CustomSchemaMeta` isn't extended with any keys, we'll fall back to a
 // loose Record definition allowing free form usage.
@@ -59,26 +72,35 @@ export type SchemaMetadata = keyof CustomSchemaMetadata extends never
 export type SchemaOptions<TType, TDefault> = {
   type: string;
   spec?: Partial<SchemaSpec<TDefault>>;
+//  typescript的类型谓词
+//   NonNullable<TType> 是 TypeScript 的一个内置工具类型，它从 TType 中排除 null 和 undefined。
+//   所以 value is NonNullable<TType> 表示 value 不是 null 或 undefined，并且是 TType 类型。
   check: (value: any) => value is NonNullable<TType>;
 };
 
+// 这行代码定义了一个泛型类型别名 AnySchema，
+// 它是 Schema 类型的别名，用于简化 Schema 类型的使用。
 export type AnySchema<
-  TType = any,
-  C = any,
-  D = any,
-  F extends Flags = Flags,
+  TType = any, //表示 Schema 验证的数据类型，默认为 any。
+  C = any, // 表示上下文类型，默认为 any。
+  D = any, // 表示默认值类型，默认为 any。
+  F extends Flags = Flags, // F：表示标志类型，必须是 Flags 类型或其子类型，默认为 Flags。
 > = Schema<TType, C, D, F>;
 
 export interface CastOptions<C = {}> {
-  parent?: any;
-  context?: C;
-  assert?: boolean;
-  stripUnknown?: boolean;
-  // XXX: should be private?
-  path?: string;
-  resolved?: boolean;
-}
+    parent?: any; // 这个属性在某些情况下可能用于存储父级对象的引用。
+    context?: C; // 类型为泛型 C。这个属性通常用于存储上下文信息。
+    assert?: boolean; // 这个属性可能用于控制是否应该在类型转换失败时抛出错误
+    stripUnknown?: boolean; //  类型为 boolean。这个属性可能用于控制是否应该从结果中删除未知的键
+    // XXX: should be private?
+    path?: string; // 这个属性可能用于存储当前处理的路径或键名
+    resolved?: boolean; //这个属性可能用于标记某些值是否已经被解析过。
+  }
 
+// 这段代码定义了一个 TypeScript 接口 CastOptionalityOptions，
+// 它继承自 CastOptions 接口，但是排除了 assert 属性。
+// 然后，它添加了一个新的 assert 属性，其类型被固定为字符串 'ignore-optionality'。
+// 主要用途是在类型转换（casting）过程中提供配置选项
 export interface CastOptionalityOptions<C = {}>
   extends Omit<CastOptions<C>, 'assert'> {
   /**
@@ -91,10 +113,10 @@ export interface CastOptionalityOptions<C = {}>
 }
 
 export type RunTest = (
-  opts: TestOptions,
-  panic: PanicCallback,
-  next: NextCallback,
-) => void;
+    opts: TestOptions, // 这是一个对象，包含了运行测试所需的所有选项。TestOptions 类型的具体结构可能会根据具体的使用场景有所不同，但通常会包含一些如路径（path）、值（value）、原始值（originalValue）等信息。
+    panic: PanicCallback, // 这是一个回调函数，当测试发生错误时会被调用。这个函数通常会接收一个 Error 对象作为参数，用于描述发生的错误。
+    next: NextCallback, //这也是一个回调函数，当测试成功完成时会被调用。这个函数通常会接收一个 ValidationError 数组和一个 value 参数，ValidationError 数组包含了在测试过程中发生的所有错误，value 参数则是经过验证的值。
+  ) => void;
 
 export type TestRunOptions = {
   tests: RunTest[];
