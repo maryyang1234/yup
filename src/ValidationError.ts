@@ -5,6 +5,7 @@ let strReg = /\$\{\s*(\w+)\s*\}/g;
 
 type Params = Record<string, unknown>;
 
+// 非抽象类实现非抽象类，实现类里面所有的属性和方法都要在目标类里重新定义和实现
 class ValidationErrorNoStack implements ValidationError {
   name: string;
   message: string;
@@ -50,6 +51,7 @@ class ValidationErrorNoStack implements ValidationError {
   [Symbol.toStringTag] = 'Error';
 }
 
+// 在声明 class ValidationError 时，除了会创建一个名为 ValidationError 的类之外，同时也创建了一个名为 ValidationError 的类型（实例的类型）。
 export default class ValidationError extends Error {
   value: any;
   path?: string;
@@ -59,6 +61,8 @@ export default class ValidationError extends Error {
   errors: string[] = [];
   inner: ValidationError[] = [];
 
+// static关键字用于定义类的静态成员，静态成员属于类本身，而非类的实例；可以在不创建类实例的情况下访问这些成员
+// 提供的参数动态生成或格式化错误信息
   static formatError(
     message: string | ((params: Params) => string) | unknown,
     params: Params,
